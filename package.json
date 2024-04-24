@@ -1,0 +1,20 @@
+{
+  "name": "diploma",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "startMain": "ts-node src/server.ts",
+    "startPools": "ts-node src/getPools.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "fastify": "^4.26.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
