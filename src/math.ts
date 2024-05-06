@@ -47,7 +47,10 @@ export function calculate(tokenACurrentPrice: number, tokenBCurrentPrice: number
 
     const vsHodl = feePlusPositionValue - hodlValue;
 
-    return {vsHodl, rangeLowerBound, rangeUpperBound, tokenATokenAmount, tokenBTokenAmount, tokenATokenUsd, tokenBTokenUsd, estDailyFeeOnDays, hodlValue, positionValue};
+    return {
+        rangeLowerBound, rangeUpperBound, tokenATokenAmount, tokenBTokenAmount, tokenATokenUsd, tokenBTokenUsd,
+        estDailyFee, positionValue, hodlValue, vsHodl
+    };
 }
 
 
