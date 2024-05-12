@@ -9,24 +9,24 @@ export async function calculateAll(days: number, investAmount: number) {
     const ranges = [0.01, 0.06, 0.11, 0.16, 0.20, 0.25];
     for (const pool of poolsArray) {
         for (const range of ranges) {
-            const poolResult = calculate(pool.priceTokenA, pool.priceTokenB, pool.volume, pool.liquidity, pool.fee, range, days, investAmount);
+            const calculations = calculate(pool.priceTokenA, pool.priceTokenB, pool.volume, pool.liquidity, pool.fee, range, days, investAmount);
             result.push({
-                poolResult,
+                calculations,
                 pool,
-                params: { range }
+                params: { range, days }
             });
         }
     }
-    result.sort((a, b) => b.poolResult.vsHodl - a.poolResult.vsHodl);
+    result.sort((a, b) => b.calculations.vsHodl - a.calculations.vsHodl);
     return result;
 }
 
 export async function server() {
+
     async function getData(req: FastifyRequest, res: FastifyReply) {
         const body = req.query as any;
         const result = await calculateAll(+body.days, +body.investAmount);
-        console.log(result)
-        res.send(JSON.stringify(result));
+        res.send(result);
     }
 
     const fastify = Fastify({ logger: true })

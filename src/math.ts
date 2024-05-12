@@ -49,7 +49,7 @@ export function calculate(tokenACurrentPrice: number, tokenBCurrentPrice: number
 
     return {
         rangeLowerBound, rangeUpperBound, tokenATokenAmount, tokenBTokenAmount, tokenATokenUsd, tokenBTokenUsd,
-        estDailyFee, positionValue, hodlValue, vsHodl
+        estDailyFee, estDailyFeeOnDays, positionValue, hodlValue, vsHodl
     };
 }
 
