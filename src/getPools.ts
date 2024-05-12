@@ -25,7 +25,7 @@ async function fetchSearchPool(query: string) {
     return pools.filter((p: any) => p.relationships.dex.data.id === "uniswap_v3");
 }
 
-async function parsePool(item: any) {
+function parsePool(item: any) {
     const address = item.attributes.address;
     const name = item.attributes.name;
     const priceToken1 = +item.attributes.base_token_price_usd;

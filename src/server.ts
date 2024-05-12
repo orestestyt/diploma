@@ -3,8 +3,8 @@ import cors from '@fastify/cors';
 import {getAllPools, getSearchPools} from "./getPools";
 import {calculate} from "./math";
 
-export async function calculateAll(days: number, investAmount: number, query: string) {
-    const poolsArray = (query !== "") ? await getSearchPools(query) : await getAllPools();
+export async function calculateAll(days: number, investAmount: number, query?: string) {
+    const poolsArray = (query && query !== "") ? await getSearchPools(query) : await getAllPools();
     const result = [];
     const ranges = [0.01, 0.06, 0.11, 0.16, 0.20, 0.25];
     for (const pool of poolsArray) {
