@@ -1,10 +1,10 @@
-import Fastify, { FastifyReply, FastifyRequest } from 'fastify'
+import Fastify, {FastifyReply, FastifyRequest} from 'fastify'
 import cors from '@fastify/cors';
-import { getPoolData } from "./getPools";
-import { calculate } from "./math";
+import {getAllPools, getSearchPools} from "./getPools";
+import {calculate} from "./math";
 
-export async function calculateAll(days: number, investAmount: number) {
-    const poolsArray = await getPoolData();
+export async function calculateAll(days: number, investAmount: number, query: string) {
+    const poolsArray = (query !== "") ? await getSearchPools(query) : await getAllPools();
     const result = [];
     const ranges = [0.01, 0.06, 0.11, 0.16, 0.20, 0.25];
     for (const pool of poolsArray) {
@@ -13,7 +13,7 @@ export async function calculateAll(days: number, investAmount: number) {
             result.push({
                 calculations,
                 pool,
-                params: { range, days }
+                params: {range, days}
             });
         }
     }
@@ -25,16 +25,16 @@ export async function server() {
 
     async function getData(req: FastifyRequest, res: FastifyReply) {
         const body = req.query as any;
-        const result = await calculateAll(+body.days, +body.investAmount);
+        const result = await calculateAll(+body.days, +body.investAmount, body.query);
         res.send(result);
     }
 
-    const fastify = Fastify({ logger: true })
-    await fastify.register(cors, { origin: '*' });
+    const fastify = Fastify({logger: true})
+    await fastify.register(cors, {origin: '*'});
 
     fastify.get('/', getData)
 
-    fastify.listen({ port: 6969, host: "0.0.0.0" }, (err: any, address: any) => {
+    fastify.listen({port: 6969, host: "0.0.0.0"}, (err: any, address: any) => {
         if (err) throw err
     })
 }

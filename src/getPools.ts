@@ -1,39 +1,49 @@
-export async function getPoolData() {
+export async function getAllPools() {
     const result = [];
     for (let i = 1; i < 10; i++) {
-        result.push(...await getPoolData_(i));
+        result.push(...await fetchAllPools(i));
     }
-    return result;
+    return result.map(parsePool);
 }
 
-async function getPoolData_(pageNum: number) {
+async function fetchAllPools(pageNum: number) {
     const response = await fetch("https://api.geckoterminal.com/api/v2/networks/eth/dexes/uniswap_v3/pools?page=" + pageNum);
     const data = await response.json();
     const pools = data.data;
-    const result = [];
-    for (const item of pools) {
-        const address = item.attributes.address;
-        const name = item.attributes.name;
-        const priceToken1 = +item.attributes.base_token_price_usd;
-        const priceToken2 = +item.attributes.quote_token_price_usd;
-        const {token1, token2, fee} = parsePoolName(name);
-        const volume = +item.attributes.volume_usd.h24;
-        const liquidity = +item.attributes.reserve_in_usd;
+    return pools;
+}
 
-        // swap tokens if token1 is not the token with the highest price
-        const [priceTokenA, priceTokenB, tokenA, tokenB] = (priceToken1 > priceToken2) ?
-          [priceToken1, priceToken2, token1, token2] :
-          [priceToken2, priceToken1, token2, token1];
+export async function getSearchPools(query: string) {
+    const pools = await fetchSearchPool(query);
+    return pools.map(parsePool);
+}
 
-        result.push({
-            address, name,
-            tokenA, tokenB,
-            priceTokenA, priceTokenB,
-            volume, fee, liquidity
-        });
-    }
-    // console.log(result)
-    return result;
+async function fetchSearchPool(query: string) {
+    const response = await fetch(`https://api.geckoterminal.com/api/v2/search/pools?query=${query}&network=eth&page=1`);
+    const data = await response.json();
+    const pools = data.data;
+    return pools.filter((p: any) => p.relationships.dex.data.id === "uniswap_v3");
+}
+
+async function parsePool(item: any) {
+    const address = item.attributes.address;
+    const name = item.attributes.name;
+    const priceToken1 = +item.attributes.base_token_price_usd;
+    const priceToken2 = +item.attributes.quote_token_price_usd;
+    const {token1, token2, fee} = parsePoolName(name);
+    const volume = +item.attributes.volume_usd.h24;
+    const liquidity = +item.attributes.reserve_in_usd;
+    // swap tokens if token1 is not the token with the highest price
+    const [priceTokenA, priceTokenB, tokenA, tokenB] = (priceToken1 > priceToken2) ?
+        [priceToken1, priceToken2, token1, token2] :
+        [priceToken2, priceToken1, token2, token1];
+
+    return ({
+        address, name,
+        tokenA, tokenB,
+        priceTokenA, priceTokenB,
+        volume, fee, liquidity
+    });
 }
 
 function parsePoolName(name: string) {
