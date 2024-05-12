@@ -1,42 +1,12 @@
 import React, {useState} from 'react';
-import './App.css';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import {Card, Container} from "react-bootstrap";
-import {getTopProfitPools} from "./backend";
+import {Card, Container, Spinner} from "react-bootstrap";
+import {getTopProfitPools, IResult} from "./backend";
 
-export interface IResult {
-  calculations: {
-    rangeLowerBound: number
-    rangeUpperBound: number,
-    tokenATokenAmount: number,
-    tokenBTokenAmount: number,
-    tokenATokenUsd: number,
-    tokenBTokenUsd: number,
-    estDailyFee: number,
-    positionValue: number,
-    hodlValue: number,
-    vsHodl: number
-  },
-  pool: {
-    address: string,
-    name: string,
-    tokenA: string,
-    tokenB: string,
-    priceTokenA: number,
-    priceTokenB: number,
-    volume: number,
-    fee: number,
-    liquidity: number
-  },
-  params: {
-    range: number,
-    days: number,
-  }
-}
 
 export default function App() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<IResult[]>([]);
   const [inputAmount, setInputAmount] = useState("10000");
   const [inputDays, setInputDays] = useState("5");
   const [inputSearchQuery, setInputSearchQuery] = useState("");
@@ -51,48 +21,49 @@ export default function App() {
 
   return (
     <Container>
-    <Form style={{padding: "10px"}}>
-      <Form.Group className="mb-3">
-        <Form.Label>Ваш депозит</Form.Label>
-        <Form.Control type="number" placeholder="$" value={inputAmount} onChange={(e) => setInputAmount(e.target.value)}/>
-        <Form.Text className="text-muted"> Максимальна кількість USD яку Ви готові вкласти в еквівалент
-          токенів </Form.Text>
-      </Form.Group>
+      <Form style={{padding: "10px"}}>
+        <Form.Group className="mb-3">
+          <Form.Label>Ваш депозит</Form.Label>
+          <Form.Control type="number" placeholder="$" value={inputAmount}
+                        onChange={(e) => setInputAmount(e.target.value)}/>
+          <Form.Text className="text-muted"> Максимальна кількість USD яку Ви готові вкласти в еквівалент
+            токенів </Form.Text>
+        </Form.Group>
 
-      <Form.Group className="mb-3">
-        <Form.Label>Тривалість депозиту </Form.Label>
-        <Form.Control type="number" placeholder="в днях"  value={inputDays} onChange={(e) => setInputDays(e.target.value)}/>
-      </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Тривалість депозиту </Form.Label>
+          <Form.Control type="number" placeholder="в днях" value={inputDays}
+                        onChange={(e) => setInputDays(e.target.value)}/>
+        </Form.Group>
 
-      <Form.Group className="mb-3">
-        <Form.Label>Фільтр токенів </Form.Label>
-        <Form.Control type="text" value={inputSearchQuery} onChange={(e) => setInputSearchQuery(e.target.value)}/>
-        <Form.Text className="text-muted"> Використовуйте це поле, щоб фільтрувати результати по даному токену, наприклад BTC </Form.Text>
-      </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Фільтр токенів </Form.Label>
+          <Form.Control type="text" value={inputSearchQuery} onChange={(e) => setInputSearchQuery(e.target.value)}/>
+          <Form.Text className="text-muted"> Використовуйте це поле, щоб фільтрувати результати по даному токену,
+            наприклад BTC </Form.Text>
+        </Form.Group>
 
 
-      <Button variant="primary" onClick={onClick}>        Почати      </Button>
-    </Form>
+        {isLoading ?
+          <Button variant="primary" disabled>
+            <Spinner animation="border" role="status" size={"sm"}/>
+            {' '}Завантаження...
+          </Button> :
+          <Button variant="primary" onClick={onClick} disabled={isLoading}> Почати </Button>
+        }
+      </Form>
 
-    <hr/>
+      <hr/>
 
-    {
-      isLoading && <div> Завантаження... </div>
-    }
+      { !isLoading &&
+          data.map((pool, i) =>
+            <PoolResult result={pool} key={i}/>
+          )
+      }
 
-    {
-      data.map((pool, i) =>
-        <PoolResult result={pool} key={i}/>
-      )
-    }
-
-  </Container>
+    </Container>
   );
 }
-
-
-
-
 
 
 function PoolResult({result}: { result: IResult }) {
@@ -121,15 +92,16 @@ function PoolResult({result}: { result: IResult }) {
 
         Необхідно купити:
         <div className={'fw-light'}>
+          <div> Загальна вартість позиції: <strong>{round(calculations.positionValue)} $USD</strong></div>
+
           <div>
             <strong>{round(calculations.tokenATokenAmount)} ${tA}</strong>
-            <span className={'fw-light'}> ({round(calculations.tokenATokenUsd)} $USD)</span>
+            <span className={'fw-light'}> = {round(calculations.tokenATokenUsd)} $USD</span>
           </div>
           <div>
             <strong> {round(calculations.tokenBTokenAmount)} ${tB}</strong>
-            <span className={'fw-light'}> ({round(calculations.tokenBTokenUsd)} $USD)</span>
+            <span className={'fw-light'}> = {round(calculations.tokenBTokenUsd)} $USD</span>
           </div>
-          <div> Загальна вартість позиції: <strong>{round(calculations.positionValue)} $USD</strong></div>
         </div>
 
         <br/>
@@ -146,7 +118,7 @@ function PoolResult({result}: { result: IResult }) {
         <div className={'fw-light'}>
           <div> Прибуток від комісії в день: <strong>{round(calculations.estDailyFee)} $USD</strong></div>
           <div> Прибуток від комісії
-            за <strong>{params.days}</strong> дні: <strong>{round(calculations.vsHodl)} $USD</strong></div>
+            за <strong>{params.days}</strong> дні: <strong>{round(calculations.estDailyFeeOnDays)} $USD</strong></div>
 
         </div>
       </Card.Text>
